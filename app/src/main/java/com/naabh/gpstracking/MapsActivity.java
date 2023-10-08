@@ -1,15 +1,18 @@
 package com.naabh.gpstracking;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import android.location.Location;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.naabh.gpstracking.databinding.ActivityMapsBinding;
 
@@ -57,13 +60,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         // mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
+        LatLng lastLocationPlaced = sydney;
+        // put pins on the map
         for (Location location: savedLocations) {
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(latLng);
             markerOptions.title("Lat:" + location.getLatitude() + "Lon:" + location.getLongitude());
             mMap.addMarker(markerOptions);
-
+            lastLocationPlaced = latLng;
         }
+        // zoom to the last saved location
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lastLocationPlaced, 12.0f));
+        // clickable pin on map
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener(){
+            @Override
+            public boolean onMarkerClick(@NonNull Marker marker) {
+                // count the number of times the pin is clicked.
+                Integer clicks = (Integer) marker.getTag();
+                if (clicks == null) {
+                    clicks = 0;
+                }
+                clicks++;
+                marker.setTag(clicks);
+                Toast.makeText(MapsActivity.this, "Marker" + marker.getTitle() + " was clicked " + marker.getTag() + " times", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
     }
 }
